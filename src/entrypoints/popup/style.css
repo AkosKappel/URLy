@@ -165,7 +165,11 @@ textarea {
   width: 100%;
   margin-bottom: 14px;
   padding: 0 10px;
-  resize: vertical;
+  /* Long lists scroll inside the box; the popup itself never grows or scrolls. */
+  height: 146px;
+  resize: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--rule);
   border-radius: 6px;
   /* Ruled like a note slip: the line-height and stripe period must match. */

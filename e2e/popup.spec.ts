@@ -110,6 +110,30 @@ test('opens links pasted into the text box', async ({ page, popupUrl }) => {
   );
 });
 
+test('long lists scroll inside the text box, not the popup', async ({
+  page,
+  popupUrl,
+}) => {
+  await page.goto(popupUrl);
+  await page.getByRole('tab', { name: 'Open' }).click();
+  const box = page.getByRole('textbox');
+  const before = await box.boundingBox();
+  const pageHeight = () =>
+    page.evaluate(() => document.querySelector('main')!.offsetHeight);
+  const mainBefore = await pageHeight();
+
+  await box.fill(
+    Array.from({ length: 100 }, (_, i) => `https://s${i}.test/`).join('\n'),
+  );
+  expect((await box.boundingBox())?.height).toBe(before?.height);
+  expect(await pageHeight()).toBe(mainBefore);
+  expect(
+    await box.evaluate(
+      (element) => element.scrollHeight > element.clientHeight,
+    ),
+  ).toBe(true);
+});
+
 test('asks before opening more than 20 tabs', async ({ page, popupUrl }) => {
   await page.goto(popupUrl);
   await page.getByRole('tab', { name: 'Open' }).click();
