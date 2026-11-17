@@ -27,12 +27,66 @@ test('copies Markdown and remembers the format', async ({
   await openSites(context, ['https://one.test/']);
   await page.goto(popupUrl);
 
-  await page.getByText('Markdown', { exact: true }).click();
+  await page.getByLabel('Format').selectOption({ label: 'Markdown links' });
   await page.getByRole('button', { name: 'Copy 1 URL' }).click();
   expect(await readClipboard(page)).toBe('[one.test](https://one.test/)');
 
   await page.reload();
-  await expect(page.getByRole('radio', { name: 'Markdown' })).toBeChecked();
+  await expect(page.getByLabel('Format')).toHaveValue('markdown');
+});
+
+test('copies with a custom template', async ({ context, page, popupUrl }) => {
+  await openSites(context, ['https://one.test/a', 'https://two.test/b']);
+  await page.goto(popupUrl);
+
+  await page.getByLabel('Format').selectOption({ label: 'Custom template' });
+  await page.getByRole('textbox', { name: 'Template' }).fill('* {host}: {url}');
+  await page.getByRole('button', { name: 'Copy 2 URLs' }).click();
+  expect(await readClipboard(page)).toBe(
+    '* one.test: https://one.test/a\n* two.test: https://two.test/b',
+  );
+});
+
+test('removes tracking parameters and merges the duplicates', async ({
+  context,
+  page,
+  popupUrl,
+}) => {
+  await openSites(context, [
+    'https://one.test/?utm_source=mail&id=1',
+    'https://one.test/?id=1&fbclid=abc',
+  ]);
+  await page.goto(popupUrl);
+  await expect(page.locator('#copy-count')).toHaveText('2');
+
+  await page.getByLabel('Remove tracking').check();
+  await expect(page.locator('#copy-count')).toHaveText('1');
+  await page.getByRole('button', { name: 'Copy 1 URL' }).click();
+  expect(await readClipboard(page)).toBe('https://one.test/?id=1');
+});
+
+test('offscreen document writes the clipboard for the shortcut', async ({
+  context,
+  page,
+  popupUrl,
+}) => {
+  await page.goto(popupUrl);
+  const worker =
+    context.serviceWorkers()[0] ??
+    (await context.waitForEvent('serviceworker'));
+  const ok = await worker.evaluate(async () => {
+    await chrome.offscreen.createDocument({
+      url: '/offscreen.html',
+      reasons: [chrome.offscreen.Reason.CLIPBOARD],
+      justification: 'test',
+    });
+    return chrome.runtime.sendMessage({
+      type: 'urly:write-clipboard',
+      text: 'https://from.test/',
+    });
+  });
+  expect(ok).toBe(true);
+  expect(await readClipboard(page)).toBe('https://from.test/');
 });
 
 test('opens links pasted into the text box', async ({ page, popupUrl }) => {

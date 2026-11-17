@@ -36,24 +36,31 @@
           <span class="number" id="copy-count">0</span>
           <span class="label" id="copy-label">tabs in this window</span>
         </p>
+        <div class="field">
+          <label for="format">Format</label>
+          <select id="format"></select>
+        </div>
+        <div class="template" id="template-field" hidden>
+          <label class="visually-hidden" for="template">Template</label>
+          <input
+            id="template"
+            type="text"
+            spellcheck="false"
+            aria-describedby="template-hint"
+          />
+          <p class="hint" id="template-hint">
+            {title}, {url}, {host}, \t for tab, \n for new line
+          </p>
+        </div>
         <div class="options">
           <label class="check">
             <input type="checkbox" id="all-windows" />
             All windows
           </label>
-          <fieldset class="format">
-            <legend class="visually-hidden">Format</legend>
-            <label
-              ><input type="radio" name="format" value="plain" />URLs</label
-            >
-            <label
-              ><input
-                type="radio"
-                name="format"
-                value="markdown"
-              />Markdown</label
-            >
-          </fieldset>
+          <label class="check">
+            <input type="checkbox" id="clean" />
+            Remove tracking
+          </label>
         </div>
         <button type="button" class="primary" id="copy" disabled>
           Copy URLs
@@ -83,6 +90,7 @@
       </section>
 
       <p class="status" id="status" role="status"></p>
+      <p class="hint shortcut" id="shortcut" hidden></p>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

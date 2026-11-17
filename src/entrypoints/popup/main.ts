@@ -1,24 +1,19 @@
 import { browser, type Browser } from 'wxt/browser';
-import { storage } from 'wxt/utils/storage';
 import {
-  copyableTabs,
-  extractUrls,
-  formatTabs,
-  type CopyFormat,
-} from '@/lib/urls';
+  buildClipboard,
+  loadSettings,
+  queryTabs,
+  saveSettings,
+  writeClipboard,
+  type Scope,
+  type Settings,
+} from '@/lib/copy';
+import { extractUrls, FORMATS, isCopyFormat } from '@/lib/urls';
 
-type Mode = 'copy' | 'open';
+type Mode = Settings['mode'];
 
 // Opening dozens of tabs at once is rarely intended; ask first.
 const CONFIRM_ABOVE = 20;
-
-const modeItem = storage.defineItem<Mode>('local:mode', { fallback: 'copy' });
-const allWindowsItem = storage.defineItem<boolean>('local:allWindows', {
-  fallback: false,
-});
-const formatItem = storage.defineItem<CopyFormat>('local:format', {
-  fallback: 'plain',
-});
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -27,16 +22,28 @@ const tabButtons = { copy: $('tab-copy'), open: $('tab-open') };
 const panels = { copy: $('panel-copy'), open: $('panel-open') };
 const copyCount = $('copy-count');
 const copyLabel = $('copy-label');
+const formatSelect = $<HTMLSelectElement>('format');
+const templateField = $('template-field');
+const templateInput = $<HTMLInputElement>('template');
 const allWindows = $<HTMLInputElement>('all-windows');
+const clean = $<HTMLInputElement>('clean');
 const copyButton = $<HTMLButtonElement>('copy');
 const openCount = $('open-count');
 const openLabel = $('open-label');
 const paste = $<HTMLTextAreaElement>('paste');
 const openButton = $<HTMLButtonElement>('open');
 const status = $('status');
+const shortcut = $('shortcut');
+
+const SCOPE_LABELS: Record<Scope, string> = {
+  window: 'in this window',
+  selected: 'selected',
+  all: 'in all windows',
+};
 
 const plural = (n: number, word: string) => `${word}${n === 1 ? '' : 's'}`;
 
+let settings: Settings;
 let tabs: Browser.tabs.Tab[] = [];
 let links: string[] = [];
 
@@ -44,11 +51,10 @@ function setStatus(message: string) {
   status.textContent = message;
 }
 
-function selectedFormat(): CopyFormat {
-  const checked = document.querySelector<HTMLInputElement>(
-    'input[name="format"]:checked',
-  );
-  return checked?.value === 'markdown' ? 'markdown' : 'plain';
+function update(changes: Partial<Settings>) {
+  settings = { ...settings, ...changes };
+  setStatus('');
+  void saveSettings(changes);
 }
 
 function setMode(mode: Mode, focus = false) {
@@ -58,46 +64,35 @@ function setMode(mode: Mode, focus = false) {
     tabButtons[key].tabIndex = selected ? 0 : -1;
     panels[key].hidden = !selected;
   }
-  setStatus('');
-  void modeItem.setValue(mode);
+  update({ mode });
   if (focus) tabButtons[mode].focus();
   else (mode === 'open' ? paste : copyButton).focus();
 }
 
-async function loadTabs() {
-  if (allWindows.checked) {
-    tabs = await browser.tabs.query({ windowType: 'normal' });
-  } else {
-    const highlighted = await browser.tabs.query({
-      currentWindow: true,
-      highlighted: true,
-    });
-    tabs =
-      highlighted.length > 1
-        ? highlighted
-        : await browser.tabs.query({ currentWindow: true });
-  }
-  const scope = allWindows.checked
-    ? 'in all windows'
-    : tabs.length > 1 && tabs.every((tab) => tab.highlighted)
-      ? 'selected'
-      : 'in this window';
-  const count = copyableTabs(tabs).length;
+function renderCopy() {
+  const { count } = buildClipboard(tabs, settings);
   copyCount.textContent = String(count);
-  copyLabel.textContent = `${plural(count, 'tab')} ${scope}`;
   copyButton.disabled = count === 0;
   copyButton.textContent =
     count === 0 ? 'No tabs to copy' : `Copy ${count} ${plural(count, 'URL')}`;
+  templateField.hidden = settings.format !== 'custom';
 }
 
-async function copy() {
-  const count = copyableTabs(tabs).length;
-  try {
-    await navigator.clipboard.writeText(formatTabs(tabs, selectedFormat()));
-    setStatus(`Copied ${count} ${plural(count, 'URL')}`);
-  } catch {
-    setStatus('Could not write to the clipboard. Try again.');
-  }
+async function loadTabs() {
+  const result = await queryTabs(settings.allWindows);
+  tabs = result.tabs;
+  const { count } = buildClipboard(tabs, settings);
+  copyLabel.textContent = `${plural(count, 'tab')} ${SCOPE_LABELS[result.scope]}`;
+  renderCopy();
+}
+
+function copy() {
+  const content = buildClipboard(tabs, settings);
+  setStatus(
+    writeClipboard(content)
+      ? `Copied ${content.count} ${plural(content.count, 'URL')}`
+      : 'Could not write to the clipboard. Try again.',
+  );
 }
 
 function updateLinks() {
@@ -127,6 +122,19 @@ async function open() {
   setStatus(`Opened ${count} ${plural(count, 'tab')}`);
 }
 
+async function showShortcut() {
+  const commands = await browser.commands.getAll();
+  const keys = commands.find(
+    (command) => command.name === 'copy-tabs',
+  )?.shortcut;
+  if (!keys) return;
+  shortcut.textContent = `${keys} copies tabs without opening URLy`;
+  shortcut.hidden = false;
+}
+
+for (const [value, label] of Object.entries(FORMATS))
+  formatSelect.add(new Option(label, value));
+
 for (const key of ['copy', 'open'] as const) {
   tabButtons[key].addEventListener('click', () => setMode(key));
   tabButtons[key].addEventListener('keydown', (event) => {
@@ -137,20 +145,23 @@ for (const key of ['copy', 'open'] as const) {
   });
 }
 
+formatSelect.addEventListener('change', () => {
+  if (isCopyFormat(formatSelect.value)) update({ format: formatSelect.value });
+  renderCopy();
+});
+templateInput.addEventListener('input', () =>
+  update({ template: templateInput.value }),
+);
 allWindows.addEventListener('change', () => {
-  void allWindowsItem.setValue(allWindows.checked);
-  setStatus('');
+  update({ allWindows: allWindows.checked });
+  void loadTabs();
+});
+clean.addEventListener('change', () => {
+  update({ clean: clean.checked });
   void loadTabs();
 });
 
-document.querySelectorAll('input[name="format"]').forEach((radio) =>
-  radio.addEventListener('change', () => {
-    void formatItem.setValue(selectedFormat());
-    setStatus('');
-  }),
-);
-
-copyButton.addEventListener('click', () => void copy());
+copyButton.addEventListener('click', copy);
 openButton.addEventListener('click', () => void open());
 paste.addEventListener('input', () => {
   updateLinks();
@@ -163,9 +174,10 @@ paste.addEventListener('keydown', (event) => {
   }
 });
 
-// Ctrl+V anywhere in the popup jumps to Open mode with the pasted text.
+// Ctrl+V anywhere outside a text field jumps to Open mode with the text.
 document.addEventListener('paste', (event) => {
-  if (event.target === paste) return;
+  if (event.target instanceof HTMLInputElement || event.target === paste)
+    return;
   const text = event.clipboardData?.getData('text') ?? '';
   if (!text) return;
   event.preventDefault();
@@ -174,15 +186,11 @@ document.addEventListener('paste', (event) => {
   updateLinks();
 });
 
-const [mode, all, format] = await Promise.all([
-  modeItem.getValue(),
-  allWindowsItem.getValue(),
-  formatItem.getValue(),
-]);
-allWindows.checked = all;
-const formatRadio = document.querySelector<HTMLInputElement>(
-  `input[name="format"][value="${format}"]`,
-);
-if (formatRadio) formatRadio.checked = true;
+settings = await loadSettings();
+formatSelect.value = settings.format;
+templateInput.value = settings.template;
+allWindows.checked = settings.allWindows;
+clean.checked = settings.clean;
 await loadTabs();
-setMode(mode);
+setMode(settings.mode);
+void showShortcut();

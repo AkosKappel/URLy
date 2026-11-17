@@ -15,8 +15,18 @@ export default defineConfig({
       128: 'icon/128.png',
     },
     action: { default_title: 'URLy' },
-    permissions: ['tabs', 'storage'],
+    permissions: [
+      'tabs',
+      'storage',
+      'contextMenus',
+      'clipboardWrite',
+      ...(browser === 'firefox' ? [] : ['offscreen']),
+    ],
     commands: {
+      'copy-tabs': {
+        suggested_key: { default: 'Alt+Shift+C' },
+        description: 'Copy tab URLs without opening URLy',
+      },
       _execute_action: {
         suggested_key: { default: 'Alt+Shift+U' },
         description: 'Open URLy',
