@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   copyableLinks,
   extractUrls,
+  formatEntries,
   formatLinks,
+  FORMATS,
+  type CopyFormat,
   isCopyable,
   isCopyFormat,
   removeTracking,
@@ -124,8 +127,15 @@ describe('formatLinks', () => {
     );
   });
 
-  it('formats JSON', () => {
-    expect(JSON.parse(formatLinks(links, 'json'))).toEqual(links);
+  it('formats JSON with one link per line', () => {
+    const json = formatLinks(links, 'json');
+    expect(JSON.parse(json)).toEqual(links);
+    expect(json.split('\n')).toHaveLength(links.length + 2);
+  });
+
+  it('gives one numbered-preview entry per link for every format', () => {
+    for (const format of Object.keys(FORMATS) as CopyFormat[])
+      expect(formatEntries(links, format)).toHaveLength(links.length);
   });
 
   it('fills a custom template per link', () => {

@@ -142,20 +142,44 @@ select,
 }
 
 .preview {
-  max-height: calc(3 * 1.5em + 12px);
+  /* About six wrapped lines; the popup stays under the 600px browser limit. */
+  max-height: 116px;
   margin: 0 0 12px;
-  padding: 6px 8px;
-  overflow: auto;
+  padding: 6px 8px 6px 0;
+  overflow-y: auto;
   overscroll-behavior: contain;
   border-radius: 6px;
   background: var(--paper);
-  color: var(--muted);
+  color: var(--ink);
   font:
     12px/1.5 ui-monospace,
     'Cascadia Mono',
     Menlo,
     monospace;
-  white-space: pre;
+  list-style: decimal;
+  list-style-position: outside;
+  padding-left: 3.2em;
+}
+
+.preview li {
+  white-space: pre-wrap;
+  tab-size: 2;
+  overflow-wrap: anywhere;
+}
+
+.preview li + li {
+  margin-top: 2px;
+}
+
+.preview li::marker {
+  color: var(--muted);
+}
+
+/* Thin, arrowless scrollbars instead of the chunky Windows default. */
+.preview,
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
 }
 
 .options {

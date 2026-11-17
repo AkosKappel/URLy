@@ -8,7 +8,13 @@ import {
   type Scope,
   type Settings,
 } from '@/lib/copy';
-import { extractUrls, FORMATS, isCopyFormat } from '@/lib/urls';
+import {
+  copyableLinks,
+  extractUrls,
+  formatEntries,
+  FORMATS,
+  isCopyFormat,
+} from '@/lib/urls';
 
 type Mode = Settings['mode'];
 
@@ -33,7 +39,7 @@ const openCount = $('open-count');
 const openLabel = $('open-label');
 const paste = $<HTMLTextAreaElement>('paste');
 const openButton = $<HTMLButtonElement>('open');
-const preview = $('preview');
+const preview = $<HTMLOListElement>('preview');
 const status = $('status');
 const shortcut = $('shortcut');
 
@@ -47,6 +53,7 @@ const plural = (n: number, word: string) => `${word}${n === 1 ? '' : 's'}`;
 
 let settings: Settings;
 let tabs: Browser.tabs.Tab[] = [];
+let scope: Scope = 'window';
 let links: string[] = [];
 
 function setStatus(message: string) {
@@ -72,10 +79,22 @@ function setMode(mode: Mode, focus = false) {
 }
 
 function renderCopy() {
-  const { count, text } = buildClipboard(tabs, settings);
-  preview.textContent = text;
+  const entries = formatEntries(
+    copyableLinks(tabs, { clean: settings.clean }),
+    settings.format,
+    settings.template,
+  );
+  const count = entries.length;
+  preview.replaceChildren(
+    ...entries.map((entry) => {
+      const item = document.createElement('li');
+      item.textContent = entry;
+      return item;
+    }),
+  );
   preview.hidden = count === 0;
   copyCount.textContent = String(count);
+  copyLabel.textContent = `${plural(count, 'tab')} ${SCOPE_LABELS[scope]}`;
   copyButton.disabled = count === 0;
   copyButton.textContent =
     count === 0 ? 'No tabs to copy' : `Copy ${count} ${plural(count, 'URL')}`;
@@ -85,8 +104,7 @@ function renderCopy() {
 async function loadTabs() {
   const result = await queryTabs(settings.allWindows);
   tabs = result.tabs;
-  const { count } = buildClipboard(tabs, settings);
-  copyLabel.textContent = `${plural(count, 'tab')} ${SCOPE_LABELS[result.scope]}`;
+  scope = result.scope;
   renderCopy();
 }
 

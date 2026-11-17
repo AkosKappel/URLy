@@ -93,39 +93,54 @@ function fillTemplate(template: string, link: Link, index: number): string {
   );
 }
 
+// One string per link, so the popup can number them in its preview.
+export function formatEntries(
+  links: Link[],
+  format: CopyFormat,
+  template = DEFAULT_TEMPLATE,
+): string[] {
+  switch (format) {
+    case 'plain':
+      return links.map((link) => link.url);
+    case 'markdown':
+      return links.map(markdownLink);
+    case 'titled':
+      return links.map(({ title, url }) => `${title}\n${url}`);
+    case 'html':
+      return links.map(
+        ({ title, url }) =>
+          `<li><a href="${escapeHtml(url)}">${escapeHtml(title)}</a></li>`,
+      );
+    case 'csv':
+      return links.map(
+        ({ title, url }) => `${csvField(title)},${csvField(url)}`,
+      );
+    case 'json':
+      return links.map((link) => JSON.stringify(link));
+    case 'custom':
+      return links.map((link, index) => fillTemplate(template, link, index));
+  }
+}
+
 export function formatLinks(
   links: Link[],
   format: CopyFormat,
   template = DEFAULT_TEMPLATE,
 ): string {
   if (links.length === 0) return '';
+  const entries = formatEntries(links, format, template);
+  const indented = entries.map((entry) => `  ${entry}`);
   switch (format) {
-    case 'plain':
-      return links.map((link) => link.url).join('\n');
-    case 'markdown':
-      return links.map(markdownLink).join('\n');
     case 'titled':
-      return links.map(({ title, url }) => `${title}\n${url}`).join('\n\n');
+      return entries.join('\n\n');
     case 'html':
-      return [
-        '<ul>',
-        ...links.map(
-          ({ title, url }) =>
-            `  <li><a href="${escapeHtml(url)}">${escapeHtml(title)}</a></li>`,
-        ),
-        '</ul>',
-      ].join('\n');
+      return ['<ul>', ...indented, '</ul>'].join('\n');
     case 'csv':
-      return [
-        'title,url',
-        ...links.map(({ title, url }) => `${csvField(title)},${csvField(url)}`),
-      ].join('\n');
+      return ['title,url', ...entries].join('\n');
     case 'json':
-      return JSON.stringify(links, null, 2);
-    case 'custom':
-      return links
-        .map((link, index) => fillTemplate(template, link, index))
-        .join('\n');
+      return `[\n${indented.join(',\n')}\n]`;
+    default:
+      return entries.join('\n');
   }
 }
 
