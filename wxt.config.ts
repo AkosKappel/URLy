@@ -3,7 +3,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: 'src',
   manifestVersion: 3,
-  zip: { zipSources: false },
+  zip: { excludeSources: ['store/**'] },
   targetBrowsers: ['chrome', 'edge', 'firefox'],
   manifest: ({ browser }) => ({
     name: 'URLy',

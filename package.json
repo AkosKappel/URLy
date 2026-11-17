@@ -1,6 +1,6 @@
 {
   "name": "urly",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Copy open tab URLs and open pasted links in one click.",
@@ -19,7 +19,8 @@
     "test:e2e": "pnpm build && playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "assets:icons": "node scripts/export-icons.mjs",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "assets:store": "wxt build && node scripts/store-assets.mjs"
   },
   "engines": {
     "node": ">=24"

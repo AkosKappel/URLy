@@ -176,7 +176,7 @@ textarea {
     )
     var(--slip);
   background-attachment: local;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 textarea::placeholder {
