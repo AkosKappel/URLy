@@ -3,6 +3,7 @@ import {
   copyableLinks,
   extractUrls,
   formatEntries,
+  linkNumbersByLine,
   formatLinks,
   FORMATS,
   type CopyFormat,
@@ -199,5 +200,26 @@ describe('extractUrls', () => {
     expect(extractUrls('http://localhost:3000/a http://intranet/')).toEqual([
       'http://localhost:3000/a',
     ]);
+  });
+});
+
+describe('linkNumbersByLine', () => {
+  const text = [
+    'Links:',
+    'https://a.com',
+    '',
+    'https://b.com and https://c.com',
+    'https://a.com again',
+    'www.d.org',
+  ].join('\n');
+
+  it('numbers the first new link on each line', () => {
+    expect(linkNumbersByLine(text)).toEqual([null, 1, null, 2, null, 4]);
+  });
+
+  it('agrees with extractUrls on the total', () => {
+    const numbers = linkNumbersByLine(text).filter((n) => n !== null);
+    expect(extractUrls(text)).toHaveLength(4);
+    expect(Math.max(...numbers)).toBeLessThanOrEqual(4);
   });
 });

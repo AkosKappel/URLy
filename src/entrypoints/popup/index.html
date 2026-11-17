@@ -86,12 +86,16 @@
           <span class="label" id="open-label">links found</span>
         </p>
         <label class="visually-hidden" for="paste">Text with links</label>
-        <textarea
-          id="paste"
-          rows="6"
-          spellcheck="false"
-          placeholder="Paste links or any text that contains them"
-        ></textarea>
+        <div class="editor">
+          <textarea
+            id="paste"
+            rows="6"
+            spellcheck="false"
+            placeholder="Paste links or any text that contains them"
+          ></textarea>
+          <div class="gutter" id="gutter" aria-hidden="true"></div>
+          <div class="mirror" id="mirror" aria-hidden="true"></div>
+        </div>
         <div class="options">
           <label class="check">
             <input type="checkbox" id="new-window" />

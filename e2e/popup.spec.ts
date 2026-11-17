@@ -158,6 +158,24 @@ test('opens links in a new window', async ({ page, popupUrl }) => {
   expect(windows).toContainEqual(['https://one.test/', 'https://two.test/']);
 });
 
+test('numbers the links beside the text box', async ({ page, popupUrl }) => {
+  await page.goto(popupUrl);
+  await page.getByRole('tab', { name: 'Open' }).click();
+  await page
+    .getByRole('textbox')
+    .fill(
+      'Links:\nhttps://a.test/\n\nhttps://b.test/ https://a.test/\nwww.c.test',
+    );
+
+  await expect(page.locator('#gutter > div')).toHaveText([
+    '',
+    '1',
+    '',
+    '2',
+    '3',
+  ]);
+});
+
 test('asks before opening more than 20 tabs', async ({ page, popupUrl }) => {
   await page.goto(popupUrl);
   await page.getByRole('tab', { name: 'Open' }).click();
