@@ -41,6 +41,9 @@ test('copies with a custom template', async ({ context, page, popupUrl }) => {
 
   await page.getByLabel('Format').selectOption({ label: 'Custom template' });
   await page.getByRole('textbox', { name: 'Template' }).fill('* {host}: {url}');
+  await expect(page.getByLabel('Preview of the copied text')).toHaveText(
+    '* one.test: https://one.test/a\n* two.test: https://two.test/b',
+  );
   await page.getByRole('button', { name: 'Copy 2 URLs' }).click();
   expect(await readClipboard(page)).toBe(
     '* one.test: https://one.test/a\n* two.test: https://two.test/b',

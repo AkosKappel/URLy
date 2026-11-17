@@ -32,6 +32,7 @@ const openCount = $('open-count');
 const openLabel = $('open-label');
 const paste = $<HTMLTextAreaElement>('paste');
 const openButton = $<HTMLButtonElement>('open');
+const preview = $('preview');
 const status = $('status');
 const shortcut = $('shortcut');
 
@@ -70,7 +71,9 @@ function setMode(mode: Mode, focus = false) {
 }
 
 function renderCopy() {
-  const { count } = buildClipboard(tabs, settings);
+  const { count, text } = buildClipboard(tabs, settings);
+  preview.textContent = text;
+  preview.hidden = count === 0;
   copyCount.textContent = String(count);
   copyButton.disabled = count === 0;
   copyButton.textContent =
@@ -149,9 +152,10 @@ formatSelect.addEventListener('change', () => {
   if (isCopyFormat(formatSelect.value)) update({ format: formatSelect.value });
   renderCopy();
 });
-templateInput.addEventListener('input', () =>
-  update({ template: templateInput.value }),
-);
+templateInput.addEventListener('input', () => {
+  update({ template: templateInput.value });
+  renderCopy();
+});
 allWindows.addEventListener('change', () => {
   update({ allWindows: allWindows.checked });
   void loadTabs();

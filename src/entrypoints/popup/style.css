@@ -141,6 +141,23 @@ select,
   font-size: 12px;
 }
 
+.preview {
+  max-height: calc(3 * 1.5em + 12px);
+  margin: 0 0 12px;
+  padding: 6px 8px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--muted);
+  font:
+    12px/1.5 ui-monospace,
+    'Cascadia Mono',
+    Menlo,
+    monospace;
+  white-space: pre;
+}
+
 .options {
   display: flex;
   justify-content: space-between;
