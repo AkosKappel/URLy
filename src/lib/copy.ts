@@ -14,6 +14,7 @@ export interface Settings {
   format: CopyFormat;
   template: string;
   clean: boolean;
+  newWindow: boolean;
 }
 
 const DEFAULTS: Settings = {
@@ -22,6 +23,7 @@ const DEFAULTS: Settings = {
   format: 'plain',
   template: DEFAULT_TEMPLATE,
   clean: false,
+  newWindow: false,
 };
 
 const settingsItem = storage.defineItem<Partial<Settings>>('local:settings', {

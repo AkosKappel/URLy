@@ -137,6 +137,24 @@ test('long lists scroll inside the text box, not the popup', async ({
   ).toBe(true);
 });
 
+test('opens links in a new window', async ({ page, popupUrl }) => {
+  await page.goto(popupUrl);
+  await page.getByRole('tab', { name: 'Open' }).click();
+  await page.getByLabel('In a new window').check();
+  await page
+    .getByRole('textbox', { name: 'Text with links' })
+    .fill('https://one.test/ https://two.test/');
+  await page.getByRole('button', { name: 'Open 2 tabs' }).click();
+  await expect(page.getByRole('status')).toHaveText('Opened 2 tabs');
+
+  const windows = await page.evaluate(async () =>
+    (await chrome.windows.getAll({ populate: true })).map((window) =>
+      window.tabs?.map((tab) => tab.pendingUrl ?? tab.url),
+    ),
+  );
+  expect(windows).toContainEqual(['https://one.test/', 'https://two.test/']);
+});
+
 test('asks before opening more than 20 tabs', async ({ page, popupUrl }) => {
   await page.goto(popupUrl);
   await page.getByRole('tab', { name: 'Open' }).click();

@@ -27,6 +27,7 @@ const templateField = $('template-field');
 const templateInput = $<HTMLInputElement>('template');
 const allWindows = $<HTMLInputElement>('all-windows');
 const clean = $<HTMLInputElement>('clean');
+const newWindow = $<HTMLInputElement>('new-window');
 const copyButton = $<HTMLButtonElement>('copy');
 const openCount = $('open-count');
 const openLabel = $('open-label');
@@ -118,8 +119,10 @@ async function open() {
     setStatus('That is a lot of tabs. Click again to confirm.');
     return;
   }
+  if (settings.newWindow) await browser.windows.create({ url: links });
   // Sequential so tabs keep the order the links were pasted in.
-  for (const url of links) await browser.tabs.create({ url, active: false });
+  else
+    for (const url of links) await browser.tabs.create({ url, active: false });
   paste.value = '';
   updateLinks();
   setStatus(`Opened ${count} ${plural(count, 'tab')}`);
@@ -160,6 +163,9 @@ allWindows.addEventListener('change', () => {
   update({ allWindows: allWindows.checked });
   void loadTabs();
 });
+newWindow.addEventListener('change', () =>
+  update({ newWindow: newWindow.checked }),
+);
 clean.addEventListener('change', () => {
   update({ clean: clean.checked });
   void loadTabs();
@@ -195,6 +201,7 @@ formatSelect.value = settings.format;
 templateInput.value = settings.template;
 allWindows.checked = settings.allWindows;
 clean.checked = settings.clean;
+newWindow.checked = settings.newWindow;
 await loadTabs();
 setMode(settings.mode);
 void showShortcut();
