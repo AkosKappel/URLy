@@ -75,16 +75,20 @@ const escapeHtml = (text: string) =>
 const csvField = (text: string) =>
   /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 
-function fillTemplate(template: string, link: Link): string {
+function fillTemplate(template: string, link: Link, index: number): string {
+  const url = new URL(link.url);
   const values: Record<string, string> = {
     '{title}': link.title,
     '{url}': link.url,
-    '{host}': new URL(link.url).host,
+    '{host}': url.host,
+    '{domain}': url.hostname.replace(/^www\./, ''),
+    '{path}': url.pathname,
+    '{index}': String(index + 1),
     '\\t': '\t',
     '\\n': '\n',
   };
   return template.replace(
-    /\{(?:title|url|host)\}|\\[tn]/g,
+    /\{(?:title|url|host|domain|path|index)\}|\\[tn]/g,
     (key) => values[key] ?? key,
   );
 }
@@ -119,7 +123,9 @@ export function formatLinks(
     case 'json':
       return JSON.stringify(links, null, 2);
     case 'custom':
-      return links.map((link) => fillTemplate(template, link)).join('\n');
+      return links
+        .map((link, index) => fillTemplate(template, link, index))
+        .join('\n');
   }
 }
 

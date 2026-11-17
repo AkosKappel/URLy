@@ -17,7 +17,7 @@ Text and images for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add
 > Copy
 >
 > - Copy the URLs of every tab in the current window, all windows, or only the tabs you selected.
-> - Formats: plain URLs, Markdown links, title and URL, HTML links (pastes as real links in Docs and email), CSV, JSON, or your own template with {title}, {url} and {host}.
+> - Formats: plain URLs, Markdown links, title and URL, HTML links (pastes as real links in Docs and email), CSV, JSON, or your own template with placeholders like {title}, {url}, {domain} and {index}.
 > - Remove tracking parameters such as utm_source and fbclid.
 > - Press Alt+Shift+C to copy without opening the popup, or right-click the toolbar icon.
 > - Internal browser pages and duplicate URLs are skipped.

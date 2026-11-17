@@ -134,6 +134,19 @@ describe('formatLinks', () => {
     ).toBe('- Site A (a.com)\thttps://a.com/');
   });
 
+  it('fills index, domain and path placeholders', () => {
+    expect(
+      formatLinks(
+        [
+          { url: 'https://www.a.com/docs/x?q=1', title: 'A' },
+          { url: 'https://b.org/', title: 'B' },
+        ],
+        'custom',
+        '{index}. {domain}{path}',
+      ),
+    ).toBe('1. a.com/docs/x\n2. b.org/');
+  });
+
   it('defaults the custom template to title, tab, URL', () => {
     expect(formatLinks(links.slice(0, 1), 'custom')).toBe(
       'Site A\thttps://a.com/',

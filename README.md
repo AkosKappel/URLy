@@ -3,7 +3,7 @@
 A minimal browser extension for moving URLs in and out of your tabs.
 
 - **Copy**: copy the URLs of the tabs in the current window, all windows, or only the tabs you have selected. Internal pages (`chrome://`, `about:` and so on) and duplicates are skipped.
-- **Formats**: plain URLs, Markdown links, title and URL, HTML links (also copied as rich text), CSV, JSON, or a custom template using `{title}`, `{url}`, `{host}`, `\t` and `\n`.
+- **Formats**: plain URLs, Markdown links, title and URL, HTML links (also copied as rich text), CSV, JSON, or a custom template using `{title}`, `{url}`, `{host}`, `{domain}`, `{path}`, `{index}`, `\t` and `\n`.
 - **Remove tracking**: optionally strip `utm_*`, `fbclid`, `gclid` and similar parameters.
 - **Open**: paste any text and URLy finds the links in it and opens them as background tabs. It asks before opening more than 20.
 - **Context menus**: right-click the toolbar icon to copy tab URLs, or right-click selected text to open the links in it.
