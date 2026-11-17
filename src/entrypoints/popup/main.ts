@@ -10,7 +10,8 @@ import {
 } from '@/lib/copy';
 import {
   copyableLinks,
-  extractUrls,
+  findUrls,
+  isCopyable,
   formatEntries,
   FORMATS,
   isCopyFormat,
@@ -28,6 +29,7 @@ const tabButtons = { copy: $('tab-copy'), open: $('tab-open') };
 const panels = { copy: $('panel-copy'), open: $('panel-open') };
 const copyCount = $('copy-count');
 const copyLabel = $('copy-label');
+const copyNote = $('copy-note');
 const formatSelect = $<HTMLSelectElement>('format');
 const templateField = $('template-field');
 const templateInput = $<HTMLInputElement>('template');
@@ -37,6 +39,7 @@ const newWindow = $<HTMLInputElement>('new-window');
 const copyButton = $<HTMLButtonElement>('copy');
 const openCount = $('open-count');
 const openLabel = $('open-label');
+const openNote = $('open-note');
 const paste = $<HTMLTextAreaElement>('paste');
 const openButton = $<HTMLButtonElement>('open');
 const preview = $<HTMLOListElement>('preview');
@@ -50,6 +53,11 @@ const SCOPE_LABELS: Record<Scope, string> = {
 };
 
 const plural = (n: number, word: string) => `${word}${n === 1 ? '' : 's'}`;
+
+function showDuplicates(note: HTMLElement, duplicates: number) {
+  note.textContent = `${duplicates} ${plural(duplicates, 'duplicate')} skipped`;
+  note.hidden = duplicates === 0;
+}
 
 let settings: Settings;
 let tabs: Browser.tabs.Tab[] = [];
@@ -95,6 +103,10 @@ function renderCopy() {
   preview.hidden = count === 0;
   copyCount.textContent = String(count);
   copyLabel.textContent = `${plural(count, 'tab')} ${SCOPE_LABELS[scope]}`;
+  showDuplicates(
+    copyNote,
+    tabs.filter((tab) => isCopyable(tab.url)).length - count,
+  );
   copyButton.disabled = count === 0;
   copyButton.textContent =
     count === 0 ? 'No tabs to copy' : `Copy ${count} ${plural(count, 'URL')}`;
@@ -118,8 +130,10 @@ function copy() {
 }
 
 function updateLinks() {
-  links = extractUrls(paste.value);
+  const found = findUrls(paste.value);
+  links = [...new Set(found)];
   const count = links.length;
+  showDuplicates(openNote, found.length - count);
   openCount.textContent = String(count);
   openLabel.textContent = `${plural(count, 'link')} found`;
   openButton.disabled = count === 0;

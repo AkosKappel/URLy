@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   copyableLinks,
   extractUrls,
+  findUrls,
   formatEntries,
   formatLinks,
   FORMATS,
@@ -198,6 +199,16 @@ describe('extractUrls', () => {
   it('accepts localhost and rejects single-label hosts', () => {
     expect(extractUrls('http://localhost:3000/a http://intranet/')).toEqual([
       'http://localhost:3000/a',
+    ]);
+  });
+});
+
+describe('findUrls', () => {
+  it('keeps repeats so duplicates can be counted', () => {
+    expect(findUrls('https://a.com https://a.com/ www.b.org')).toEqual([
+      'https://a.com/',
+      'https://a.com/',
+      'https://www.b.org/',
     ]);
   });
 });

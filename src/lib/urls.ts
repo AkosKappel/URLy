@@ -167,8 +167,9 @@ function trimCandidate(candidate: string): string {
   }
 }
 
-export function extractUrls(text: string): string[] {
-  const urls = new Set<string>();
+// Every link in the text, in order, including repeats.
+export function findUrls(text: string): string[] {
+  const urls: string[] = [];
   for (const [match] of text.matchAll(URL_CANDIDATE)) {
     const candidate = trimCandidate(match);
     const withScheme = /^www\./i.test(candidate)
@@ -177,10 +178,14 @@ export function extractUrls(text: string): string[] {
     try {
       const url = new URL(withScheme);
       if (url.hostname.includes('.') || url.hostname === 'localhost')
-        urls.add(url.href);
+        urls.push(url.href);
     } catch {
       // Not a parseable URL; skip it.
     }
   }
-  return [...urls];
+  return urls;
+}
+
+export function extractUrls(text: string): string[] {
+  return [...new Set(findUrls(text))];
 }

@@ -65,8 +65,10 @@ test('removes tracking parameters and merges the duplicates', async ({
   await page.goto(popupUrl);
   await expect(page.locator('#copy-count')).toHaveText('2');
 
+  await expect(page.locator('#copy-note')).toBeHidden();
   await page.getByLabel('Remove tracking').check();
   await expect(page.locator('#copy-count')).toHaveText('1');
+  await expect(page.locator('#copy-note')).toHaveText('1 duplicate skipped');
   await page.getByRole('button', { name: 'Copy 1 URL' }).click();
   expect(await readClipboard(page)).toBe('https://one.test/?id=1');
 });
@@ -103,6 +105,7 @@ test('opens links pasted into the text box', async ({ page, popupUrl }) => {
     .getByRole('textbox', { name: 'Text with links' })
     .fill('Read https://one.test/x and www.two.test, then https://one.test/x');
   await expect(page.locator('#open-count')).toHaveText('2');
+  await expect(page.locator('#open-note')).toHaveText('1 duplicate skipped');
 
   await page.getByRole('button', { name: 'Open 2 tabs' }).click();
   await expect(page.getByRole('status')).toHaveText('Opened 2 tabs');

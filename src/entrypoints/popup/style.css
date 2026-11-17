@@ -92,6 +92,12 @@ textarea {
   margin: 18px 0 14px;
 }
 
+.note {
+  margin: -8px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .number {
   font-size: 56px;
   font-weight: 800;
