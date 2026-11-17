@@ -164,3 +164,29 @@ test('pasting in Copy mode switches to Open mode', async ({
   );
   await expect(page.locator('#open-count')).toHaveText('1');
 });
+
+test('registers the context menu items', async ({
+  context,
+  page,
+  popupUrl,
+}) => {
+  await page.goto(popupUrl);
+  const worker =
+    context.serviceWorkers()[0] ??
+    (await context.waitForEvent('serviceworker'));
+  // update() rejects for unknown IDs, so it doubles as an existence check.
+  const missing = await worker.evaluate(async () => {
+    const ids = [
+      'copy-tabs',
+      'copy-as',
+      'copy-as:plain',
+      'copy-as:custom',
+      'open-selection',
+    ];
+    const results = await Promise.allSettled(
+      ids.map((id) => chrome.contextMenus.update(id, {})),
+    );
+    return ids.filter((_, i) => results[i]?.status === 'rejected');
+  });
+  expect(missing).toEqual([]);
+});

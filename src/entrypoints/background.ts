@@ -7,7 +7,14 @@ import {
   writeClipboard,
   type ClipboardContent,
 } from '@/lib/copy';
-import { extractUrls } from '@/lib/urls';
+import {
+  extractUrls,
+  FORMATS,
+  isCopyFormat,
+  type CopyFormat,
+} from '@/lib/urls';
+
+const COPY_AS_PREFIX = 'copy-as:';
 
 const OFFSCREEN_URL = '/offscreen.html';
 
@@ -35,9 +42,10 @@ async function flashBadge(text: string, color: string) {
   setTimeout(() => void browser.action.setBadgeText({ text: '' }), 1500);
 }
 
-async function copyTabs() {
+async function copyTabs(format?: CopyFormat) {
   try {
-    const settings = await loadSettings();
+    const saved = await loadSettings();
+    const settings = format ? { ...saved, format } : saved;
     const { tabs } = await queryTabs(settings.allWindows);
     const content = buildClipboard(tabs, settings);
     if (content.count === 0) return flashBadge('0', '#5a6573');
@@ -71,6 +79,18 @@ export default defineBackground(() => {
       contexts: ['action'],
     });
     browser.contextMenus.create({
+      id: 'copy-as',
+      title: 'Copy tab URLs as',
+      contexts: ['action'],
+    });
+    for (const [format, label] of Object.entries(FORMATS))
+      browser.contextMenus.create({
+        id: `${COPY_AS_PREFIX}${format}`,
+        parentId: 'copy-as',
+        title: label,
+        contexts: ['action'],
+      });
+    browser.contextMenus.create({
       id: 'open-selection',
       title: 'Open links in selection',
       contexts: ['selection'],
@@ -78,9 +98,12 @@ export default defineBackground(() => {
   });
 
   browser.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === 'copy-tabs') void copyTabs();
-    if (info.menuItemId === 'open-selection')
-      void openLinks(info.selectionText ?? '', tab);
+    const id = String(info.menuItemId);
+    if (id === 'copy-tabs') void copyTabs();
+    const format = id.slice(COPY_AS_PREFIX.length);
+    if (id.startsWith(COPY_AS_PREFIX) && isCopyFormat(format))
+      void copyTabs(format);
+    if (id === 'open-selection') void openLinks(info.selectionText ?? '', tab);
   });
 
   browser.commands.onCommand.addListener((command) => {
