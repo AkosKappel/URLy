@@ -14,7 +14,6 @@ import {
   formatEntries,
   FORMATS,
   isCopyFormat,
-  linkNumbersByLine,
 } from '@/lib/urls';
 
 type Mode = Settings['mode'];
@@ -40,8 +39,6 @@ const openCount = $('open-count');
 const openLabel = $('open-label');
 const paste = $<HTMLTextAreaElement>('paste');
 const openButton = $<HTMLButtonElement>('open');
-const gutter = $('gutter');
-const mirror = $('mirror');
 const preview = $<HTMLOListElement>('preview');
 const status = $('status');
 const shortcut = $('shortcut');
@@ -120,31 +117,7 @@ function copy() {
   );
 }
 
-const row = (text: string) => {
-  const element = document.createElement('div');
-  element.textContent = text;
-  return element;
-};
-
-function renderGutter() {
-  const style = getComputedStyle(paste);
-  const padding =
-    parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-  mirror.style.width = `${paste.clientWidth - padding}px`;
-  mirror.replaceChildren(...paste.value.split('\n').map(row));
-  const numbers = linkNumbersByLine(paste.value);
-  gutter.replaceChildren(
-    ...[...mirror.children].map((line, index) => {
-      const number = row(String(numbers[index] ?? ''));
-      number.style.height = `${(line as HTMLElement).offsetHeight}px`;
-      return number;
-    }),
-  );
-  gutter.scrollTop = paste.scrollTop;
-}
-
 function updateLinks() {
-  renderGutter();
   links = extractUrls(paste.value);
   const count = links.length;
   openCount.textContent = String(count);
@@ -218,9 +191,6 @@ clean.addEventListener('change', () => {
 
 copyButton.addEventListener('click', copy);
 openButton.addEventListener('click', () => void open());
-paste.addEventListener('scroll', () => {
-  gutter.scrollTop = paste.scrollTop;
-});
 paste.addEventListener('input', () => {
   updateLinks();
   setStatus('');

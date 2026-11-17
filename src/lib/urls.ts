@@ -184,18 +184,3 @@ export function extractUrls(text: string): string[] {
   }
   return [...urls];
 }
-
-// The link number shown beside each line of pasted text: the first new link
-// on that line, matching the order extractUrls returns and tabs open in.
-export function linkNumbersByLine(text: string): (number | null)[] {
-  const seen = new Set<string>();
-  return text.split('\n').map((line) => {
-    let first: number | null = null;
-    for (const url of extractUrls(line)) {
-      if (seen.has(url)) continue;
-      seen.add(url);
-      first ??= seen.size;
-    }
-    return first;
-  });
-}

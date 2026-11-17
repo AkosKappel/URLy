@@ -201,53 +201,11 @@ textarea {
   accent-color: var(--accent);
 }
 
-/* The textarea cannot number its own lines, so a gutter sits over its left
-   padding and a hidden mirror measures how tall each wrapped line is. */
-.editor {
-  position: relative;
-  margin-bottom: 14px;
-}
-
-.gutter {
-  position: absolute;
-  top: 1px;
-  bottom: 1px;
-  left: 1px;
-  width: 30px;
-  padding-right: 6px;
-  overflow: hidden;
-  pointer-events: none;
-  border-right: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  border-radius: 5px 0 0 5px;
-  color: var(--muted);
-  font:
-    11px/24px ui-monospace,
-    'Cascadia Mono',
-    Menlo,
-    monospace;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-.mirror {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
-  pointer-events: none;
-  line-height: 24px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.mirror > div {
-  min-height: 24px;
-}
-
 textarea {
   display: block;
   width: 100%;
-  padding: 0 10px 0 40px;
+  margin-bottom: 14px;
+  padding: 0 10px;
   /* Long lists scroll inside the box; the popup itself never grows or scrolls. */
   height: 146px;
   resize: none;
