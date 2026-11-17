@@ -63,6 +63,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec wxt zip -b ${{ matrix.browser }}
+      - if: matrix.browser == 'firefox'
+        run: pnpm dlx web-ext@8 lint --source-dir .output/firefox-mv3
       - uses: actions/upload-artifact@v7
         with:
           name: urly-${{ matrix.browser }}

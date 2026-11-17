@@ -19,12 +19,13 @@ Text and images for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add
 > - Copy the URLs of every tab in the current window, all windows, or only the tabs you selected.
 > - Formats: plain URLs, Markdown links, title and URL, HTML links (pastes as real links in Docs and email), CSV, JSON, or your own template with placeholders like {title}, {url}, {domain} and {index}.
 > - Remove tracking parameters such as utm_source and fbclid.
-> - Press Alt+Shift+C to copy without opening the popup, or right-click the toolbar icon.
+> - See a live preview of the copied text before you copy.
+> - Press Alt+Shift+C to copy without opening the popup, or right-click the toolbar icon to copy in any format.
 > - Internal browser pages and duplicate URLs are skipped.
 >
 > Open
 >
-> - Paste any text: notes, chat messages, emails. URLy finds every link and opens them as background tabs, in order.
+> - Paste any text: notes, chat messages, emails. URLy finds every link and opens them as background tabs in order, or in a new window.
 > - Select text on a page, right-click and choose "Open links in selection".
 > - URLy asks before opening more than 20 tabs.
 >
