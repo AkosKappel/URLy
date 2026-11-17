@@ -1,0 +1,85 @@
+import type { browser } from 'wxt/browser';
+import { expect, openSites, test } from './fixtures';
+
+// The extension API global inside the popup page.
+declare const chrome: typeof browser;
+
+const readClipboard = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => navigator.clipboard.readText());
+
+test('copies the URLs of open tabs', async ({ context, page, popupUrl }) => {
+  await openSites(context, ['https://one.test/', 'https://two.test/a?b=1']);
+  await page.goto(popupUrl);
+
+  await expect(page.locator('#copy-count')).toHaveText('2');
+  await page.getByRole('button', { name: 'Copy 2 URLs' }).click();
+  await expect(page.getByRole('status')).toHaveText('Copied 2 URLs');
+  expect(await readClipboard(page)).toBe(
+    'https://one.test/\nhttps://two.test/a?b=1',
+  );
+});
+
+test('copies Markdown and remembers the format', async ({
+  context,
+  page,
+  popupUrl,
+}) => {
+  await openSites(context, ['https://one.test/']);
+  await page.goto(popupUrl);
+
+  await page.getByText('Markdown', { exact: true }).click();
+  await page.getByRole('button', { name: 'Copy 1 URL' }).click();
+  expect(await readClipboard(page)).toBe('[one.test](https://one.test/)');
+
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Markdown' })).toBeChecked();
+});
+
+test('opens links pasted into the text box', async ({ page, popupUrl }) => {
+  await page.goto(popupUrl);
+  await page.getByRole('tab', { name: 'Open' }).click();
+
+  await page
+    .getByRole('textbox', { name: 'Text with links' })
+    .fill('Read https://one.test/x and www.two.test, then https://one.test/x');
+  await expect(page.locator('#open-count')).toHaveText('2');
+
+  await page.getByRole('button', { name: 'Open 2 tabs' }).click();
+  await expect(page.getByRole('status')).toHaveText('Opened 2 tabs');
+  // Extension-opened tabs skip Playwright routing, so ask the browser what
+  // each tab was asked to load.
+  const urls = await page.evaluate(async () =>
+    (await chrome.tabs.query({})).map((tab) => tab.pendingUrl ?? tab.url),
+  );
+  expect(urls).toEqual(
+    expect.arrayContaining(['https://one.test/x', 'https://www.two.test/']),
+  );
+});
+
+test('asks before opening more than 20 tabs', async ({ page, popupUrl }) => {
+  await page.goto(popupUrl);
+  await page.getByRole('tab', { name: 'Open' }).click();
+  const many = Array.from({ length: 21 }, (_, i) => `https://s${i}.test/`);
+  await page.getByRole('textbox').fill(many.join('\n'));
+
+  await page.getByRole('button', { name: 'Open 21 tabs' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Yes, open all 21 tabs' }),
+  ).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Click again');
+});
+
+test('pasting in Copy mode switches to Open mode', async ({
+  page,
+  popupUrl,
+}) => {
+  await page.goto(popupUrl);
+  await page.evaluate(() => navigator.clipboard.writeText('https://one.test/'));
+  await page.keyboard.press('ControlOrMeta+V');
+
+  await expect(page.getByRole('tab', { name: 'Open' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.locator('#open-count')).toHaveText('1');
+});

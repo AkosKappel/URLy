@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>URLy</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <div class="modes" role="tablist" aria-label="Mode">
+        <button
+          type="button"
+          role="tab"
+          id="tab-copy"
+          aria-controls="panel-copy"
+          aria-selected="true"
+        >
+          Copy
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-open"
+          aria-controls="panel-open"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Open
+        </button>
+      </div>
+
+      <section id="panel-copy" role="tabpanel" aria-labelledby="tab-copy">
+        <p class="count">
+          <span class="number" id="copy-count">0</span>
+          <span class="label" id="copy-label">tabs in this window</span>
+        </p>
+        <div class="options">
+          <label class="check">
+            <input type="checkbox" id="all-windows" />
+            All windows
+          </label>
+          <fieldset class="format">
+            <legend class="visually-hidden">Format</legend>
+            <label
+              ><input type="radio" name="format" value="plain" />URLs</label
+            >
+            <label
+              ><input
+                type="radio"
+                name="format"
+                value="markdown"
+              />Markdown</label
+            >
+          </fieldset>
+        </div>
+        <button type="button" class="primary" id="copy" disabled>
+          Copy URLs
+        </button>
+      </section>
+
+      <section
+        id="panel-open"
+        role="tabpanel"
+        aria-labelledby="tab-open"
+        hidden
+      >
+        <p class="count">
+          <span class="number" id="open-count">0</span>
+          <span class="label" id="open-label">links found</span>
+        </p>
+        <label class="visually-hidden" for="paste">Text with links</label>
+        <textarea
+          id="paste"
+          rows="6"
+          spellcheck="false"
+          placeholder="Paste links or any text that contains them"
+        ></textarea>
+        <button type="button" class="primary" id="open" disabled>
+          Open links
+        </button>
+      </section>
+
+      <p class="status" id="status" role="status"></p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

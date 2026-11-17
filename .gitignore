@@ -1,0 +1,13 @@
+node_modules/
+.output/
+.wxt/
+coverage/
+.env
+.env.*
+*.local
+.DS_Store
+test-results/
+playwright-report/
+
+# Local project planning
+BACKLOG.md
