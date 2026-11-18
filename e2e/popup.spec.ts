@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import type { browser } from 'wxt/browser';
 import { expect, openSites, test } from './fixtures';
 
@@ -214,4 +215,18 @@ test('registers the context menu items', async ({
     return ids.filter((_, i) => results[i]?.status === 'rejected');
   });
   expect(missing).toEqual([]);
+});
+
+test('has no detectable accessibility issues', async ({ page, popupUrl }) => {
+  await page.goto(popupUrl);
+  await page.getByRole('combobox', { name: 'Format' }).selectOption('custom');
+  for (const scheme of ['light', 'dark'] as const) {
+    // Reduced motion skips the color transitions axe would otherwise sample.
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+    for (const mode of ['Copy', 'Open']) {
+      await page.getByRole('tab', { name: mode }).click();
+      const { violations } = await new AxeBuilder({ page }).analyze();
+      expect(violations, `${mode} mode, ${scheme}`).toEqual([]);
+    }
+  }
 });

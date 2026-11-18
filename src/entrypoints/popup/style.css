@@ -282,3 +282,16 @@ textarea::placeholder {
     transition: background-color 120ms ease;
   }
 }
+
+/* High-contrast modes drop backgrounds and shadows, which is all that marks
+   the selected tab and the button edges otherwise. */
+@media (forced-colors: active) {
+  .modes button[aria-selected='true']:not(:focus-visible) {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+
+  .primary {
+    border: 1px solid ButtonText;
+  }
+}
