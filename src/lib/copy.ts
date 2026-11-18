@@ -106,3 +106,18 @@ export function writeClipboard({
     document.removeEventListener('copy', onCopy);
   }
 }
+
+// The read counterpart of writeClipboard, for the same unfocused documents.
+// execCommand('paste') needs the clipboardRead permission and an editable
+// target to paste into.
+export function readClipboard(): string {
+  const field = document.createElement('textarea');
+  document.body.append(field);
+  field.focus();
+  try {
+    document.execCommand('paste');
+    return field.value;
+  } finally {
+    field.remove();
+  }
+}

@@ -4,10 +4,12 @@ import {
   buildClipboard,
   loadSettings,
   queryTabs,
+  readClipboard,
   writeClipboard,
   type ClipboardContent,
 } from '@/lib/copy';
 import {
+  CONFIRM_ABOVE,
   extractUrls,
   FORMATS,
   isCopyFormat,
@@ -18,23 +20,42 @@ const COPY_AS_PREFIX = 'copy-as:';
 
 const OFFSCREEN_URL = '/offscreen.html';
 
-async function writeFromBackground(content: ClipboardContent) {
-  // Firefox background pages have a DOM and can write directly.
-  if (import.meta.env.FIREFOX) return writeClipboard(content);
+async function createOffscreen() {
   try {
     await browser.offscreen.createDocument({
       url: OFFSCREEN_URL,
       reasons: [browser.offscreen.Reason.CLIPBOARD],
-      justification: 'Copy tab URLs to the clipboard from a keyboard shortcut',
+      justification:
+        'Copy tab URLs and read links from the clipboard for shortcuts and menus',
     });
   } catch {
-    // Already open from an earlier copy.
+    // Already open from an earlier clipboard access.
   }
+}
+
+// Firefox background pages have a DOM and can use the clipboard directly.
+async function writeFromBackground(content: ClipboardContent) {
+  if (import.meta.env.FIREFOX) return writeClipboard(content);
+  await createOffscreen();
   return browser.runtime.sendMessage<unknown, boolean>({
     type: 'urly:write-clipboard',
     ...content,
   });
 }
+
+async function readFromBackground() {
+  if (import.meta.env.FIREFOX) return readClipboard();
+  await createOffscreen();
+  return browser.runtime.sendMessage<unknown, string>({
+    type: 'urly:read-clipboard',
+  });
+}
+
+// Optional, so installing URLy shows no clipboard warning. Must be called
+// synchronously in the click or shortcut handler: Firefox only allows
+// permission prompts during a user action.
+const requestClipboardRead = () =>
+  browser.permissions.request({ permissions: ['clipboardRead'] });
 
 async function flashBadge(text: string, color: string) {
   await browser.action.setBadgeBackgroundColor({ color });
@@ -59,8 +80,7 @@ async function copyTabs(format?: CopyFormat) {
   }
 }
 
-async function openLinks(text: string, tab?: Browser.tabs.Tab) {
-  const urls = extractUrls(text);
+async function openLinks(urls: string[], tab?: Browser.tabs.Tab) {
   // Next to the page the links came from, in order.
   for (const [offset, url] of urls.entries())
     await browser.tabs.create({
@@ -69,6 +89,23 @@ async function openLinks(text: string, tab?: Browser.tabs.Tab) {
       windowId: tab?.windowId,
       index: tab ? tab.index + 1 + offset : undefined,
     });
+}
+
+async function openClipboard(
+  granted: Promise<boolean>,
+  tab?: Browser.tabs.Tab,
+) {
+  try {
+    if (!(await granted)) return flashBadge('!', '#b42318');
+    const urls = extractUrls(await readFromBackground());
+    if (urls.length === 0) return flashBadge('0', '#5a6573');
+    // There is nowhere to confirm here, so large lists go through the popup.
+    if (urls.length > CONFIRM_ABOVE) return flashBadge('20+', '#b54708');
+    await openLinks(urls, tab);
+    await flashBadge(String(urls.length), '#1f7a4d');
+  } catch {
+    await flashBadge('!', '#b42318');
+  }
 }
 
 export default defineBackground(() => {
@@ -91,6 +128,11 @@ export default defineBackground(() => {
         contexts: ['action'],
       });
     browser.contextMenus.create({
+      id: 'open-clipboard',
+      title: 'Open links from clipboard',
+      contexts: ['action'],
+    });
+    browser.contextMenus.create({
       id: 'open-selection',
       title: 'Open links in selection',
       contexts: ['selection'],
@@ -103,10 +145,15 @@ export default defineBackground(() => {
     const format = id.slice(COPY_AS_PREFIX.length);
     if (id.startsWith(COPY_AS_PREFIX) && isCopyFormat(format))
       void copyTabs(format);
-    if (id === 'open-selection') void openLinks(info.selectionText ?? '', tab);
+    if (id === 'open-clipboard')
+      void openClipboard(requestClipboardRead(), tab);
+    if (id === 'open-selection')
+      void openLinks(extractUrls(info.selectionText ?? ''), tab);
   });
 
-  browser.commands.onCommand.addListener((command) => {
+  browser.commands.onCommand.addListener((command, tab) => {
     if (command === 'copy-tabs') void copyTabs();
+    if (command === 'open-clipboard')
+      void openClipboard(requestClipboardRead(), tab);
   });
 });

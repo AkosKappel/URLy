@@ -22,10 +22,15 @@ export default defineConfig({
       'clipboardWrite',
       ...(browser === 'firefox' ? [] : ['offscreen']),
     ],
+    optional_permissions: ['clipboardRead'],
     commands: {
       'copy-tabs': {
         suggested_key: { default: 'Alt+Shift+C' },
         description: 'Copy tab URLs without opening URLy',
+      },
+      'open-clipboard': {
+        suggested_key: { default: 'Alt+Shift+O' },
+        description: 'Open the links on the clipboard',
       },
       _execute_action: {
         suggested_key: { default: 'Alt+Shift+U' },

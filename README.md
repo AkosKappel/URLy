@@ -7,12 +7,14 @@ A minimal browser extension for moving URLs in and out of your tabs.
 - **Preview**: the popup shows the copied text before you copy.
 - **Remove tracking**: optionally strip `utm_*`, `fbclid`, `gclid` and similar parameters.
 - **Open**: paste any text and URLy finds the links in it and opens them as background tabs, or in a new window. It asks before opening more than 20.
-- **Context menus**: right-click the toolbar icon to copy tab URLs (with your saved format or any other), or right-click selected text to open the links in it.
+- **Open from clipboard**: press `Alt+Shift+O`, or right-click the toolbar icon, to open the links on the clipboard next to the current tab. The first use asks for clipboard access. More than 20 links shows `20+` on the icon and opens nothing; paste them into the popup instead.
+- **Context menus**: right-click the toolbar icon to copy tab URLs (with your saved format or any other) or open the links on the clipboard, or right-click selected text to open the links in it.
 
 | Shortcut      | Action                                            |
 | ------------- | ------------------------------------------------- |
 | `Alt+Shift+U` | Open the popup                                    |
 | `Alt+Shift+C` | Copy tab URLs with your saved format, no popup    |
+| `Alt+Shift+O` | Open the links on the clipboard, no popup         |
 | `Ctrl+V`      | In the popup: switch to Open with the pasted text |
 | `Ctrl+Enter`  | In the Open text box: open the links              |
 

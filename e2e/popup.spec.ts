@@ -205,6 +205,7 @@ test('registers the context menu items', async ({
       'copy-as',
       'copy-as:plain',
       'copy-as:custom',
+      'open-clipboard',
       'open-selection',
     ];
     const results = await Promise.allSettled(

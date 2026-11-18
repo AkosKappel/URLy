@@ -22,6 +22,9 @@ export type CopyFormat = keyof typeof FORMATS;
 
 export const DEFAULT_TEMPLATE = '{title}\\t{url}';
 
+// Opening dozens of tabs at once is rarely intended; ask first.
+export const CONFIRM_ABOVE = 20;
+
 export function isCopyFormat(value: unknown): value is CopyFormat {
   return typeof value === 'string' && Object.hasOwn(FORMATS, value);
 }

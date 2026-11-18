@@ -9,6 +9,7 @@ import {
   type Settings,
 } from '@/lib/copy';
 import {
+  CONFIRM_ABOVE,
   copyableLinks,
   findUrls,
   isCopyable,
@@ -18,9 +19,6 @@ import {
 } from '@/lib/urls';
 
 type Mode = Settings['mode'];
-
-// Opening dozens of tabs at once is rarely intended; ask first.
-const CONFIRM_ABOVE = 20;
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;

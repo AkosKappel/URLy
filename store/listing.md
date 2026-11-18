@@ -27,11 +27,12 @@ Text and images for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add
 >
 > - Paste any text: notes, chat messages, emails. URLy finds every link and opens them as background tabs in order, or in a new window.
 > - Select text on a page, right-click and choose "Open links in selection".
+> - Press Alt+Shift+O, or right-click the toolbar icon, to open the links on your clipboard.
 > - URLy asks before opening more than 20 tabs.
 >
-> Private by design: no data collection, no network requests, no clipboard reading. Open source under the MIT license.
+> Private by design: no data collection, no network requests, clipboard read only when you ask. Open source under the MIT license.
 >
-> Shortcuts: Alt+Shift+U opens URLy, Alt+Shift+C copies tab URLs. Change them in your browser's extension shortcut settings.
+> Shortcuts: Alt+Shift+U opens URLy, Alt+Shift+C copies tab URLs, Alt+Shift+O opens the links on the clipboard. Change them in your browser's extension shortcut settings.
 
 **Images:**
 
@@ -58,13 +59,14 @@ Text and images for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add
 
 **Permission justifications:**
 
-| Permission       | Justification                                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- |
-| `tabs`           | Reads the URLs and titles of open tabs so they can be copied, and opens new tabs for links the user provides. |
-| `storage`        | Saves the user's chosen format, template and options locally.                                                 |
-| `contextMenus`   | Adds "Copy tab URLs" to the toolbar icon menu and "Open links in selection" to the page menu.                 |
-| `clipboardWrite` | Writes the copied URLs to the clipboard when the user presses the copy shortcut.                              |
-| `offscreen`      | Service workers cannot access the clipboard; an offscreen document writes the copied URLs for the shortcut.   |
+| Permission       | Justification                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `tabs`           | Reads the URLs and titles of open tabs so they can be copied, and opens new tabs for links the user provides.                 |
+| `storage`        | Saves the user's chosen format, template and options locally.                                                                 |
+| `contextMenus`   | Adds "Copy tab URLs" and "Open links from clipboard" to the toolbar icon menu and "Open links in selection" to the page menu. |
+| `clipboardWrite` | Writes the copied URLs to the clipboard when the user presses the copy shortcut.                                              |
+| `offscreen`      | Service workers cannot access the clipboard; an offscreen document writes the copied URLs for the shortcut.                   |
+| `clipboardRead`  | Optional, requested on first use. Reads the clipboard only when the user chooses "Open links from clipboard".                 |
 
 **Remote code:** No, all code is packaged with the extension.
 
